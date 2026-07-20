@@ -33,7 +33,7 @@
                                         <img src="{{ coin.thumb }}" alt="{{ coin.name }}" width="32" height="32" class="me-3 rounded-circle">
                                         <div>
                                             <div class="fw-bold">{{ coin.name }}</div>
-                                            <div class="text-muted small">{{ coin.symbol }}</div>
+                                            <div class="wt small">{{ coin.symbol }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -97,7 +97,7 @@
                                         <img src="{{ nft.thumb }}" alt="{{ nft.name }}" width="32" height="32" class="me-3 rounded-circle">
                                         <div>
                                             <div class="fw-bold">{{ nft.name }}</div>
-                                            <div class="text-muted small">{{ nft.symbol }}</div>
+                                            <div class="wt small">{{ nft.symbol }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -210,11 +210,11 @@
                         {% endif %}
                     </div>
 
-                    <div class="card-footer bg-transparent border-top-0 pt-0">
-                        <a href="/categories/{{ cat.slug }}" class="btn btn-sm btn-outline-primary w-100">
-                            View Category
-                        </a>
-                    </div>
+{#                    <div class="card-footer bg-transparent border-top-0 pt-0">#}
+{#                        <a href="/category/{{ cat.slug }}" class="btn btn-sm btn-outline-primary w-100">#}
+{#                            View Category#}
+{#                        </a>#}
+{#                    </div>#}
                 </div>
             </div>
         {% endfor %}

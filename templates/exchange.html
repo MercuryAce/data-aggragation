@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exchange.name }} - Exchange{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <img src="{{ exchange.image }}"
+                 alt="{{ exchange.name }}"
+                 width="72"
+                 height="72"
+                 class="rounded me-3">
+            <div>
+                <h1 class="mb-0 wt">{{ exchange.name }}</h1>
+                <div class="mt-1">
+                    <span class="badge bg-success me-2 wt">Rank #{{ exchange.trust_score_rank }}</span>
+                    <span class="badge bg-primary wt">Trust Score: {{ exchange.trust_score }}/10</span>
+                    <span class="badge bg-danger wt">{{ exchange.country }}</span>
+                    <span class="badge bg-info wt">{{ exchange.year_established }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Description -->
+    {% if not exchange.description == "" %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="wt">Description</h5>
+            <p class="wt">{{ exchange.description }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- Stats & Links -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="wt mb-4">24h Volume (BTC)
+            <span class="mb-0 fw-bold wt">
+                {{ "{:,.2f}".format(exchange.trade_volume_24h_btc) }} BTC
+            </span></h6>
+
+            <h5 class="wt">Stats</h5>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <small class="wt">Coins</small>
+                        <div class="fs-4 fw-bold wt">{{ exchange.coins }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <small class="wt">Trading Pairs</small>
+                        <div class="fs-4 fw-bold wt">{{ exchange.pairs }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <small class="wt">Centralized</small>
+                        <div class="fs-4 fw-bold wt">{{ 'Yes' if exchange.centralized else 'No' }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <small class="wt">Trading Incentive</small>
+                        <div class="fs-4 fw-bold wt">{{ 'Yes' if exchange.has_trading_incentive else 'No' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="wt">Links</h5>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ exchange.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                    Official Website
+                </a>
+                {% if exchange.twitter_handle %}
+                    <a href="https://twitter.com/{{ exchange.twitter_handle }}" target="_blank" class="btn btn-outline-info btn-sm">
+                        Twitter
+                    </a>
+                {% endif %}
+                {% if exchange.telegram_url %}
+                    <a href="{{ exchange.telegram_url }}" target="_blank" class="btn btn-outline-info btn-sm">
+                        Telegram
+                    </a>
+                {% endif %}
+                {% if exchange.reddit_url %}
+                    <a href="{{ exchange.reddit_url }}" target="_blank" class="btn btn-outline-danger btn-sm">
+                        Reddit
+                    </a>
+                {% endif %}
+                {% if exchange.facebook_url %}
+                    <a href="{{ exchange.facebook_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        Facebook
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Tickers -->
+    {% if exchange.tickers %}
+        <div class="card card-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Top Trading Pairs</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Pair</th>
+                                <th>Last Price</th>
+                                <th>Volume</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticker in exchange.tickers[:10] %}
+                                <tr>
+                                    <td>{{ ticker.base }} / {{ ticker.target }}</td>
+                                    <td>${{ "{:,.4f}".format(ticker.last) }}</td>
+                                    <td>{{ "{:,.0f}".format(ticker.volume) }}</td>
+                                    <td>
+                                        <a href="{{ ticker.trade_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            Trade
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

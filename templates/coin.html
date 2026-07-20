@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}{{ coin.get('name', 'Coin') }} - CryptoDash{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-4">
+            <img src="{{ coin['image']['large'] }}" width="64" height="64"
+                 class="rounded-circle me-3" alt="{{ coin['symbol'] }}">
+            <div>
+                <h1 class="mb-0">{{ coin.get('name') }}</h1>
+                <h5 class="wt">{{ coin.get('symbol', '').upper() }}</h5>
+                <h6>Genesis date: {{ coin.get('genesis_date') }}</h6>
+            </div>
+
+            <div class="ms-auto text-end">
+                <h5 class="mb-1 text-center">Sentiment</h5>
+
+                <div class="d-flex align-items-center justify-content-end gap-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fa-solid fa-thumbs-up fa-fw text-success me-1"></i>
+                        <span class="fs-5 fw-bold text-success">{{ "%.0f"|format(coin.get('sentiment_votes_up_percentage', 0)) }}%</span>
+                    </div>
+
+                    <div class="vr" style="height: 24px; opacity: 0.35;"></div>
+
+                    <div class="d-flex align-items-center">
+                        <i class="fa-solid fa-thumbs-down fa-fw text-danger me-1"></i>
+                        <span class="fs-5 fw-bold text-danger">{{ "%.0f"|format(coin.get('sentiment_votes_down_percentage', 0)) }}%</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- coin localization -->
+        <div class="mb-4">
+            <div class="d-flex flex-wrap gap-2">
+                {% for lang, name in coin.localization.items() %}
+                    {% if name and lang != 'en' %}
+                        <span class="badge rounded-pill bg-light text-dark border px-3 py-2 fs-6 shadow-sm">
+                            <small class="text-muted">{{ lang }}</small> | {{ name }}
+                        </span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0 wt d-flex justify-content-between align-items-center">
+                    <span>Price Change</span>
+                    <div class="text-end">
+                        <span>24 hours: </span>
+                    <span class="{{ 'text-success' if coin['market_data']['price_change_24h'] > 0 else 'text-danger' }} fs-6">
+                        {{ "%.2f"|format(coin['market_data']['price_change_24h']) }}
+                    </span>
+                    </div>
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- 7d -->
+                    <div class="col-6 col-sm-4">
+                        <div class="d-flex justify-content-between">
+                            <span class="wt">7d</span>
+                            <span class="{{ 'text-success' if coin['market_data']['price_change_percentage_7d'] > 0 else 'text-danger' }}">
+                                {{ "%.2f"|format(coin['market_data']['price_change_percentage_7d']) }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 14d -->
+                    <div class="col-6 col-sm-4">
+                        <div class="d-flex justify-content-between">
+                            <span class="wt">14d</span>
+                            <span class="{{ 'text-success' if coin['market_data']['price_change_percentage_14d'] > 0 else 'text-danger' }}">
+                                {{ "%.2f"|format(coin['market_data']['price_change_percentage_14d']) }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 30d -->
+                    <div class="col-6 col-sm-4">
+                        <div class="d-flex justify-content-between">
+                            <span class="wt">30d</span>
+                            <span class="{{ 'text-success' if coin['market_data']['price_change_percentage_30d'] > 0 else 'text-danger' }}">
+                                {{ "%.2f"|format(coin['market_data']['price_change_percentage_30d']) }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 60d -->
+                    <div class="col-6 col-sm-4">
+                        <div class="d-flex justify-content-between">
+                            <span class="wt">60d</span>
+                            <span class="{{ 'text-success' if coin['market_data']['price_change_percentage_60d'] > 0 else 'text-danger' }}">
+                                {{ "%.2f"|format(coin['market_data']['price_change_percentage_60d']) }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 200d -->
+                    <div class="col-6 col-sm-4">
+                        <div class="d-flex justify-content-between">
+                            <span class="wt">200d</span>
+                            <span class="{{ 'text-success' if coin['market_data']['price_change_percentage_200d'] > 0 else 'text-danger' }}">
+                                {{ "%.2f"|format(coin['market_data']['price_change_percentage_200d']) }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 1y (from 365d) -->
+                    <div class="col-6 col-sm-4">
+                        <div class="d-flex justify-content-between">
+                            <span class="wt">1y</span>
+                            <span class="{{ 'text-success' if coin['market_data']['price_change_percentage_1y'] > 0 else 'text-danger' }}">
+                                {{ "%.2f"|format(coin['market_data']['price_change_percentage_1y']) }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Chart -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 wt">Price Chart</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-light" data-days="7">7d</button>
+                    <button type="button" class="btn btn-outline-light active" data-days="30">30d</button>
+                    <button type="button" class="btn btn-outline-light" data-days="90">90d</button>
+                    <button type="button" class="btn btn-outline-light" data-days="365">1y</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="priceChart" height="400"></canvas>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0 wt">About {{ coin.get('name') }}</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0 lst-dark spc-1">{{ coin.get('description', {}).get('en', 'No description available.') }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+
+        <!-- Key Stats -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0 wt">Market Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="small wt">Market Cap</div>
+                        <div class="fw-bold wt">${{ coin['market_data']['market_cap']['usd'] | int }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small wt">Market Cap Rank</div>
+                        <div class="fw-bold wt">#{{ coin.get('market_cap_rank', 'N/A') }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small wt">24h Volume</div>
+                        <div class="fw-bold wt">${{ coin['market_data']['total_volume']['usd'] | int }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small wt">Fully Diluted</div>
+                        <div class="fw-bold wt">${{ coin['market_data']['fully_diluted_valuation']['usd'] | int }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small wt">Circulating Supply</div>
+                        <div class="fw-bold wt">{{ coin['market_data']['circulating_supply'] | int }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small wt">Total Supply</div>
+                        <div class="fw-bold wt">{{ coin['market_data']['max_supply'] | int }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All-Time High / Low -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0 wt">All-Time</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2 wt">
+                    <span>ATH</span>
+                    <span class="fw-bold">${{ "{:,.2f}".format(coin['market_data']['ath']['usd']) }}</span>
+                </div>
+                <div class="d-flex justify-content-between small wt">
+                    <span>{{ coin['market_data']['ath_date']['usd'][:10] }}</span>
+                    {% set ath = coin['market_data']['ath_change_percentage']['usd'] %}
+                    <span class="{{ 'text-danger' if ath < 0 else 'text-success' }}">
+                        {{ "%.1f"|format(ath) }}%
+                    </span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-2 wt">
+                    <span>ATL</span>
+                    <span class="fw-bold">${{ "{:,.2f}".format(coin['market_data']['atl']['usd']) }}</span>
+                </div>
+                <div class="d-flex justify-content-between small wt">
+                    <span>{{ coin['market_data']['ath_date']['usd'][:10] }}</span>
+                    {% set atl = coin['market_data']['atl_change_percentage']['usd'] %}
+                    <span class="{{ 'text-success' if atl > 0 else 'text-danger' }}">
+                        {{ "%.1f"|format(atl) }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional info, Categories & Links -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0 wt">Additional Info</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between lst-dark wt">
+                        <span class="mrgn-rt-80">Hashing Algorithm</span>
+                        <span>{{ coin.get('hashing_algorithm', 'N/A') }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between lst-dark wt">
+                        <span class="mrgn-rt-80">Block Time</span>
+                        <span>{{ coin.get('block_time_in_minutes', 'N/A') }} minutes</span>
+                    </li>
+                </ul>
+
+                <div class="mb-3">
+                    <div class="small mb-1 wt">Categories</div>
+                    {% for cat in coin.get('categories', []) %}
+                        <span class="badge bg-secondary me-1 mb-1 wt">{{ cat }}</span>
+                    {% else %}
+                        <span class="text-muted wt">N/A</span>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <div class="small text-muted mb-1 wt">Links</div>
+                    {% if coin.get('links', {}).get('homepage') %}
+                        <a href="{{ coin['links']['homepage'][0] }}" target="_blank" class="d-block mb-1 wt">Official Website</a>
+                    {% endif %}
+                    {% if coin.get('links', {}).get('twitter_screen_name') %}
+                        <a href="https://twitter.com/{{ coin['links']['twitter_screen_name'] }}" target="_blank" class="d-block mb-1 wt">Twitter</a>
+                    {% endif %}
+                    {% if coin.get('links', {}).get('subreddit_url') %}
+                        <a href="{{ coin['links']['subreddit_url'] }}" target="_blank" class="d-block wt">Reddit</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const coinId = '{{ coin.id }}';           // make sure coin.id is passed to the template
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    let priceChart;
+
+    // Load initial chart (30 days)
+    loadChart(30);
+
+    // Button click handlers
+    document.querySelectorAll('[data-days]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const days = parseInt(this.dataset.days);
+
+            // Toggle active class
+            document.querySelectorAll('[data-days]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            loadChart(days);
+        });
+    });
+
+    function loadChart(days) {
+        // Destroy previous chart if it exists
+        if (priceChart) {
+            priceChart.destroy();
+        }
+
+        fetch(`/api/price-history/${coinId}?days=${days}`)
+            .then(res => res.json())
+            .then(data => {
+                const labels = data.map(item => new Date(item[0]).toLocaleDateString());
+                const prices = data.map(item => item[4]); // close price (CoinGecko OHLC format)
+
+                priceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Price (USD)',
+                            data: prices,
+                            borderColor: '#0d6efd',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { display: true },
+                            y: { display: true }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            })
+            .catch(err => console.error('Chart fetch error:', err));
+    }
+});
+</script>
+{% endblock %}

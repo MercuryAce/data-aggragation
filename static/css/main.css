@@ -1,0 +1,106 @@
+/* main.css - Crypto Dashboard Theme */
+
+body {
+    background-color: #0d1117;
+    color: #c9d1d9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.card {
+    background-color: #161b22;
+    border: none;
+    border-radius: 8px;
+}
+
+.table {
+    color: #c9d1d9;
+}
+
+.table-dark {
+    background-color: #161b22;
+}
+
+.text-green {
+    color: #3fb950;
+}
+
+.text-red {
+    color: #f85149;
+}
+
+/* Extra polish for the dashboard */
+.navbar {
+    background-color: #161b22 !important;
+}
+
+.btn-outline-light {
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+}
+
+.btn-outline-light:hover {
+    background-color: #30363d;
+    color: #fff;
+}
+
+.list-group-item {
+    background-color: #161b22;
+    color: #c9d1d9;
+    border-color: #30363d;
+}
+
+/* Search input styling */
+input[type="text"] {
+    background-color: #161b22;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+}
+
+input[type="text"]:focus {
+    background-color: #161b22;
+    color: #c9d1d9;
+    border-color: #58a6ff;
+    box-shadow: none;
+}
+
+/* Optional helper class */
+.wt {
+    color: white;
+}
+
+.dk-gn {
+    color: darkgreen;
+}
+.spc-1 {
+    letter-spacing: 0.1rem;
+}
+
+.spc-2 {
+    letter-spacing: 0.2rem;
+}
+
+.mrgn-rt-80 {
+    margin-right: 80px;
+}
+
+.lst-dark {
+    background-color: #1f1f1f !important;
+    color: #c9d1d9 !important;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+.markdown-content th, .markdown-content td {
+    border: 1px solid #444;
+    padding: 8px;
+}
+.markdown-content ul, .markdown-content ol {
+    padding-left: 1.5rem;
+}

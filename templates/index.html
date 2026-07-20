@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Live Crypto Prices{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Live Cryptocurrency Prices</h1>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-5">
+            <input type="text" id="searchInput" class="form-control grey" placeholder="Search coins by name or symbol...">
+        </div>
+        <div class="col-md-7 text-md-end mt-2 mt-md-0">
+            <small class="grey">Showing top coins • Auto-refreshes every 60s</small>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <!-- Active Cryptocurrencies -->
+        <div class="col-6 col-md-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="fa-solid fa-globe fa-2x text-primary mb-2"></i>
+                    <h6 class="mb-1 wt">Active Cryptocurrencies</h6>
+                    <h3 class="fw-bold mb-0 wt">{{ global_stats.active_cryptocurrencies | int }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Markets -->
+        <div class="col-6 col-md-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="fa-solid fa-exchange-alt fa-2x text-success mb-2"></i>
+                    <h6 class="mb-1 wt">Markets</h6>
+                    <h3 class="fw-bold mb-0 wt">{{ global_stats.markets | int }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- 24h Market Cap Change -->
+        <div class="col-6 col-md-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="fa-solid fa-chart-line fa-2x text-info mb-2"></i>
+                    <h6 class="mb-1 wt">24h Market Cap Change</h6>
+                    <h3 class="fw-bold mb-0
+                        {% if global_stats.market_cap_change_percentage_24h_usd > 0 %}text-success
+                        {% elif global_stats.market_cap_change_percentage_24h_usd < 0 %}text-danger
+                        {% endif %}">
+                        {{ global_stats.market_cap_change_percentage_24h_usd | round(2) }}%
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- 24h Volume Change -->
+        <div class="col-6 col-md-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="fa-solid fa-chart-bar fa-2x text-warning mb-2"></i>
+                    <h6 class="mb-1 wt">24h Volume Change</h6>
+                    <h3 class="fw-bold mb-0
+                        {% if global_stats.volume_change_percentage_24h_usd > 0 %}text-success
+                        {% elif global_stats.volume_change_percentage_24h_usd < 0 %}text-danger
+                        {% endif %}">
+                        {{ global_stats.volume_change_percentage_24h_usd | round(2) }}%
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" id="cryptoTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th data-sort="text">Coin</th>
+                        <th class="text-end">Price (USD)</th>
+                        <th class="text-end">24h %</th>
+                        <th class="text-center">Market Cap</th>
+                        <th class="text-center">24h Volume</th>
+                        <th class="text-end">24h High</th>
+                        <th class="text-end">24h Low</th>
+                        <th class="text-center">Fully Diluted</th>
+                        <th class="text-start" >Supply</th>
+                        <th class="text-center" style="width: 90px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coin in coins %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="{{ coin['image'] }}"
+                                     width="26" height="26"
+                                     class="me-2 rounded-circle"
+                                     alt="{{ coin['symbol'] }} logo"
+                                     onerror="this.src='https://via.placeholder.com/26'">
+                                <div>
+                                    <strong>{{ coin['name'] }}</strong><br>
+                                    <small class="wt">{{ coin['symbol'].upper() }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <strong>${{ "{:,.2f}".format(coin['current_price']) }}</strong>
+                        </td>
+                        <td class="text-end">
+                            {% set change = coin.get('price_change_percentage_24h', 0) or 0 %}
+                            <span class="{{ 'text-green' if change >= 0 else 'text-red' }} fw-bold">
+                                {{ "%.2f"|format(change) }}%
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            ${{ "{:,.0f}".format(coin.get('market_cap', 0) or 0) }}
+                        </td>
+                        <td class="text-end">
+                            ${{ "{:,.0f}".format(coin.get('total_volume', 0) or 0) }}
+                        </td>
+                        <td class="text-end">
+                            {% set high = coin['high_24h'] %}
+                            {% if high is not none  %}
+                            <span class="{{ 'text-green' if  high >= coin['current_price'] else 'text-red' }}">
+                                ${{ "%.0f"|format(high) }}
+                            </span>
+                            {% else %}
+                                <span class="grey">-</span>>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% set low = coin['low_24h'] %}
+                            {% if low is not none  %}
+                            <span class="{{ 'text-green' if  low >= coin['current_price'] else 'text-red' }}">
+                                ${{ "%.0f"|format(low) }}
+                            </span>
+                            {% else %}
+                                <span class="grey">-</span>>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            ${{ "{:,.0f}".format(coin.get('fully_diluted_valuation', 0) or 0) }}
+                        </td>
+                        <td class="text-start">
+                            {{ "{:,.0f}".format(coin.get('total_supply', 0) or 0) }}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('cg.coin', coin_id=coin['id']) }}"
+                               class="btn btn-sm btn-outline-light px-3">
+                                Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Client-side search
+    const searchInput = document.getElementById('searchInput');
+    const table = document.getElementById('cryptoTable');
+
+    searchInput.addEventListener('input', function () {
+        const filter = this.value.toLowerCase();
+        const rows = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Trending{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">🔥 Trending</h1>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th colspan="2"># Top Coins</th>
+                            <th>Rank</th>
+                            <th>Price</th>
+                            <th>24h Change</th>
+                            <th>Market Cap</th>
+                            <th>Total Volume</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {% for item in trending.coins %}
+                            <tr>
+                            {% set coin = item.item %}
+                            <td class="align-middle fw-bold">{{ loop.index }}</td>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ coin.thumb }}" alt="{{ coin.name }}" width="32" height="32" class="me-3 rounded-circle">
+                                        <div>
+                                            <div class="fw-bold">{{ coin.name }}</div>
+                                            <div class="text-muted small">{{ coin.symbol }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    {{ coin.market_cap_rank | int }}
+                                </td>
+                                <td class="align-middle">
+                                    ${{ "{:,.4f}".format(coin.data.price) }}
+                                </td>
+                                <td class="align-middle">
+                                    <span class="{{ 'text-success' if coin.data.price_change_percentage_24h.usd > 0 else 'text-danger' }}">
+                                        {{ "%.2f"|format(coin.data.price_change_percentage_24h.usd) }}%
+                                    </span>
+                                </td>
+                                <td class="align-middle">
+                                    ${{ "{:,.4f}".format(coin.data.price) }}
+                                </td>
+                                <td class="align-middle">
+                                    {{ coin.data.market_cap | string }}
+                                </td>
+                                <td class="align-middle">
+                                    {% if coin.data.sparkline %}
+                                    <img src="{{ coin.data.sparkline }}"
+                                         alt="{{ coin.name }} sparkline"
+                                         height="40"
+                                         class="img-fluid"
+                                         style="max-width: 120px;">
+                                    {% else %}
+                                    <span class="text-muted"></span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th colspan="2"># Top NFTs</th>
+                            <th>Contract</th>
+                            <th>Floor Price</th>
+                            <th>Native Currency</th>
+                            <th>Volume</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {% for nft in trending.nfts %}
+                            <tr>
+                            <td class="align-middle fw-bold">{{ loop.index }}</td>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ nft.thumb }}" alt="{{ nft.name }}" width="32" height="32" class="me-3 rounded-circle">
+                                        <div>
+                                            <div class="fw-bold">{{ nft.name }}</div>
+                                            <div class="text-muted small">{{ nft.symbol }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    {{ nft.nft_contract_id | int }}
+                                </td>
+                                <td class="align-middle">
+                                    {{ "{:,.6f}".format(nft.floor_price_in_native_currency) }}{{ nft.native_currency_symbol | string | indent }}
+                                </td>
+                                <td class="align-middle">
+                                    {{ nft.native_currency_symbol | string | upper }}
+                                </td>
+                                <td class="align-middle">
+                                    {{ nft.data.h24_volume | string }}
+                                </td>
+                                <td class="align-middle">
+                                    {% if nft.data.sparkline %}
+                                    <img src="{{ nft.data.sparkline }}"
+                                         alt="{{ nft.name }} sparkline"
+                                         height="40"
+                                         class="img-fluid"
+                                         style="max-width: 120px;">
+                                    {% else %}
+                                    <span class="text-muted"></span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <h4 class="mb-0 wt">Categories</h4>
+    </div>
+    <!-- Categories Grid -->
+    <div class="row g-4">
+        {% for cat in trending.categories %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="mb-1 wt">{{ cat.name }}</h5>
+                                <span class="small wt">{{ cat.coins_count }} coins</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary">
+                                    ${{ "{:,.0f}".format(cat.data.market_cap) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 24h Change -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="wt">24h Change</span>
+                                <span class="{{ 'text-success' if cat.data.market_cap_change_percentage_24h.usd > 0 else 'text-danger' }}">
+                                    {{ "%.2f"|format(cat.data.market_cap_change_percentage_24h.usd) }}%
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Market Cap -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="wt">Market Cap</span>
+                                <span class="wt">{{ "%.2f"|format(cat.data.market_cap) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Volume -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="wt">Total Volume</span>
+                                <span class="wt">{{ "%.2f"|format(cat.data.total_volume) }}</span>
+                            </div>
+                        </div>
+
+                        <hr class="grey">
+
+                        <!-- Top 3 Coins -->
+                        {% if cat.top_3_coins_images %}
+                            <div class="mb-3">
+                                <div class="small mb-2 wt">Top Coins</div>
+                                <div class="d-flex gap-2">
+                                    {% for img in cat.top_3_coins_images %}
+                                        <img src="{{ img }}"
+                                             alt="Coin"
+                                             width="32"
+                                             height="32"
+                                             class="rounded-circle border"
+                                             onerror="this.style.display='none'"
+                                        >
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Sparkline -->
+                        {% if cat.data.sparkline %}
+                            <div>
+                                <img src="{{ cat.data.sparkline }}"
+                                     alt="{{ cat.name }} sparkline"
+                                     class="img-fluid"
+                                     style="max-height: 50px; width: 100%;">
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-footer bg-transparent border-top-0 pt-0">
+                        <a href="/categories/{{ cat.slug }}" class="btn btn-sm btn-outline-primary w-100">
+                            View Category
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

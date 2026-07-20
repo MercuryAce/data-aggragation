@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Categories</h1>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Category</th>
+                            <th>Market Cap</th>
+                            <th>24h Change</th>
+                            <th>24h Volume</th>
+                            <th>Top 3 Coins</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in categories %}
+                            <tr data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="{{ cat.content }}">
+
+                                <!-- Rank -->
+                                <td class="align-middle fw-bold">{{ loop.index }}</td>
+
+                                <!-- Category Name -->
+                                <td class="align-middle">
+                                    <span class="fw-bold">{{ cat.name }}</span>
+                                </td>
+
+                                <!-- Market Cap -->
+                                <td class="align-middle">
+                                    ${{ cat.market_cap }}
+                                </td>
+
+                                <!-- 24h Change -->
+                                <td class="align-middle">
+                                    <span class="">
+                                        {{ cat.market_cap_change_24h }}%
+                                    </span>
+                                </td>
+
+                                <!-- 24h Volume -->
+                                <td class="align-middle">
+                                    ${{ cat.volume_24h }}
+                                </td>
+
+                                <!-- Top 3 Coins -->
+                                <td class="align-middle">
+                                    {% if cat.top_3_coins %}
+                                        <div class="d-flex gap-2">
+                                            {% for img in cat.top_3_coins %}
+                                                <img src="{{ img }}"
+                                                     width="28"
+                                                     height="28"
+                                                     class="rounded-circle border"
+                                                     onerror="this.style.display='none'"
+                                                     alt="coin">
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+</script>
+{% endblock %}

@@ -34,7 +34,7 @@ def get_market_data(vs_currency="usd", limit=250, page=1, **params):
         "order": "market_cap_desc",
         "per_page": limit,
         "page": page,
-        "sparkline": False,
+        "sparkline": True,
         "price_change_percentage": "24h",
         **params,
     }

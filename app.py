@@ -1,12 +1,22 @@
+import os
+
 from flask import Flask
 from flask_caching import Cache
-
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from blueprints.coingecko import init_cg_blueprint
 
 import markdown
 # from models import db
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 60})
+app.secret_key = os.environ.get('SECRET_KEY')
+limiter =Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["334 per day", "52 per hour"],
+    storage_uri="memory://",
+)
 
 # === Database Configuration ===
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///crypto.db'
@@ -15,7 +25,7 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 60})
 # Create db instance
 # db.init_app(app)
 
-cg_bp = init_cg_blueprint(cache)
+cg_bp = init_cg_blueprint(cache, limiter)
 app.register_blueprint(cg_bp)
 
 # with app.app_context():

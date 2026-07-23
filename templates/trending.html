@@ -3,9 +3,9 @@
 {% block title %}Trending{% endblock %}
 
 {% block content %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">🔥 Trending</h1>
-    </div>
+    {% with title="Trending", subtitle="Coins, NFTs and categories with the most momentum right now" %}
+        {% include "partials/page_header.html" %}
+    {% endwith %}
 
     <div class="card shadow-sm mb-4">
         <div class="card-body p-0">
@@ -144,9 +144,7 @@
         </div>
     </div>
 
-    <div class="mb-4">
-        <h4 class="mb-0 wt">Categories</h4>
-    </div>
+    <h4 class="mb-3">Trending Categories</h4>
     <!-- Categories Grid -->
     <div class="row g-4">
         {% for cat in trending.categories %}

@@ -3,11 +3,9 @@
 {% block title %}Categories{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">Categories</h1>
-    </div>
+    {% with title="Categories", subtitle="Crypto sectors ranked by market capitalization" %}
+        {% include "partials/page_header.html" %}
+    {% endwith %}
 
     <div class="card shadow-sm">
         <div class="card-body p-0">
@@ -51,8 +49,9 @@
 
                                 <!-- 24h Change -->
                                 <td class="align-middle">
-                                    <span class="">
-                                        {{ cat.market_cap_change_24h }}%
+                                    {% set chg = cat.market_cap_change_24h | float %}
+                                    <span class="{{ 'text-green' if chg >= 0 else 'text-red' }} fw-bold">
+                                        {{ "%.2f"|format(chg) }}%
                                     </span>
                                 </td>
 
@@ -83,8 +82,6 @@
             </div>
         </div>
     </div>
-
-</div>
 {% endblock %}
 
 {% block scripts %}

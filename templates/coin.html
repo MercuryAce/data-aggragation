@@ -258,15 +258,15 @@
                 </div>
 
                 <div>
-                    <div class="small text-muted mb-1 wt">Links</div>
-                    {% if coin.get('links', {}).get('homepage') %}
-                        <a href="{{ coin['links']['homepage'][0] }}" target="_blank" class="d-block mb-1 wt">Official Website</a>
+                    <div class="small text-muted mb-1">Links</div>
+                    {% if coin.get('links', {}).get('homepage') and coin['links']['homepage'][0] %}
+                        <a href="{{ coin['links']['homepage'][0] }}" target="_blank" rel="noopener" class="d-block mb-1">Official Website</a>
                     {% endif %}
                     {% if coin.get('links', {}).get('twitter_screen_name') %}
-                        <a href="https://twitter.com/{{ coin['links']['twitter_screen_name'] }}" target="_blank" class="d-block mb-1 wt">Twitter</a>
+                        <a href="https://twitter.com/{{ coin['links']['twitter_screen_name'] }}" target="_blank" rel="noopener" class="d-block mb-1">Twitter</a>
                     {% endif %}
                     {% if coin.get('links', {}).get('subreddit_url') %}
-                        <a href="{{ coin['links']['subreddit_url'] }}" target="_blank" class="d-block wt">Reddit</a>
+                        <a href="{{ coin['links']['subreddit_url'] }}" target="_blank" rel="noopener" class="d-block">Reddit</a>
                     {% endif %}
                 </div>
             </div>
@@ -312,6 +312,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 const labels = data.map(item => new Date(item[0]).toLocaleDateString());
                 const prices = data.map(item => item[4]); // close price (CoinGecko OHLC format)
 
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(88, 166, 255, 0.25)');
+                gradient.addColorStop(1, 'rgba(88, 166, 255, 0)');
+
                 priceChart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -319,9 +323,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         datasets: [{
                             label: 'Price (USD)',
                             data: prices,
-                            borderColor: '#0d6efd',
+                            borderColor: '#58a6ff',
+                            backgroundColor: gradient,
                             borderWidth: 2,
-                            fill: false,
+                            fill: true,
                             tension: 0.3,
                             pointRadius: 0
                         }]
@@ -330,8 +335,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         responsive: true,
                         maintainAspectRatio: false,
                         scales: {
-                            x: { display: true },
-                            y: { display: true }
+                            x: {
+                                display: true,
+                                grid: { color: 'rgba(139, 148, 158, 0.12)' },
+                                ticks: { color: '#8b949e', maxTicksLimit: 8 }
+                            },
+                            y: {
+                                display: true,
+                                grid: { color: 'rgba(139, 148, 158, 0.12)' },
+                                ticks: { color: '#8b949e' }
+                            }
                         },
                         plugins: {
                             legend: { display: false }

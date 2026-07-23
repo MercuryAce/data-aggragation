@@ -3,7 +3,6 @@
 {% block title %}{{ exchange.name }} - Exchange{% endblock %}
 
 {% block content %}
-<div class="container py-4">
     {% if error %}
         <div class="alert alert-warning" role="alert">
             {{ error }}
@@ -11,7 +10,7 @@
     {% endif %}
 
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div class="d-flex align-items-center">
             <img src="{{ exchange.image }}"
                  alt="{{ exchange.name }}"
@@ -19,12 +18,12 @@
                  height="72"
                  class="rounded me-3">
             <div>
-                <h1 class="mb-0 wt">{{ exchange.name }}</h1>
-                <div class="mt-1">
-                    <span class="badge bg-success me-2 wt">Rank #{{ exchange.trust_score_rank }}</span>
-                    <span class="badge bg-primary wt">Trust Score: {{ exchange.trust_score }}/10</span>
-                    <span class="badge bg-danger wt">{{ exchange.country }}</span>
-                    <span class="badge bg-info wt">{{ exchange.year_established }}</span>
+                <h1 class="page-title mb-0">{{ exchange.name }}</h1>
+                <div class="mt-2 d-flex flex-wrap gap-2">
+                    <span class="badge bg-success">Rank #{{ exchange.trust_score_rank }}</span>
+                    <span class="badge bg-primary">Trust Score: {{ exchange.trust_score }}/10</span>
+                    <span class="badge bg-secondary">{{ exchange.country }}</span>
+                    <span class="badge bg-info">{{ exchange.year_established }}</span>
                 </div>
             </div>
         </div>
@@ -142,6 +141,4 @@
             </div>
         </div>
     {% endif %}
-
-</div>
 {% endblock %}

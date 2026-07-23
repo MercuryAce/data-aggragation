@@ -3,55 +3,46 @@
 {% block title %}Live Crypto Prices{% endblock %}
 
 {% block content %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">Live Cryptocurrency Prices</h1>
-    </div>
+    {% with title="Live Cryptocurrency Prices", subtitle="Top coins by market cap, updated live from CoinGecko" %}
+        {% include "partials/page_header.html" %}
+    {% endwith %}
 
-    <div class="row mb-3">
-        <div class="col-md-5">
-            <input type="text" id="searchInput" class="form-control grey" placeholder="Search coins by name or symbol...">
+    {% if error %}
+        <div class="alert alert-warning" role="alert">
+            {{ error }}
         </div>
-        <div class="col-md-7 text-md-end mt-2 mt-md-0">
-            <small class="grey">Showing top coins • Auto-refreshes every 60s</small>
-        </div>
-    </div>
+    {% endif %}
 
-    <div class="row g-3 mb-3">
-            {% if error %}
-                <div class="alert alert-warning" role="alert">
-                    {{ error }}
-                </div>
-            {% endif %}
-
+    <div class="row g-3 mb-4">
         <!-- Active Cryptocurrencies -->
         <div class="col-6 col-md-3">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card stat-card h-100">
                 <div class="card-body text-center">
-                    <i class="fa-solid fa-globe fa-2x text-primary mb-2"></i>
-                    <h6 class="mb-1 wt">Active Cryptocurrencies</h6>
-                    <h3 class="fw-bold mb-0 wt">{{ global_stats.active_cryptocurrencies | int }}</h3>
+                    <span class="stat-icon"><i class="fa-solid fa-globe text-primary"></i></span>
+                    <div class="stat-label">Active Cryptocurrencies</div>
+                    <h3 class="stat-value">{{ global_stats.active_cryptocurrencies | int }}</h3>
                 </div>
             </div>
         </div>
 
         <!-- Markets -->
         <div class="col-6 col-md-3">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card stat-card h-100">
                 <div class="card-body text-center">
-                    <i class="fa-solid fa-exchange-alt fa-2x text-success mb-2"></i>
-                    <h6 class="mb-1 wt">Markets</h6>
-                    <h3 class="fw-bold mb-0 wt">{{ global_stats.markets | int }}</h3>
+                    <span class="stat-icon"><i class="fa-solid fa-arrow-right-arrow-left text-success"></i></span>
+                    <div class="stat-label">Markets</div>
+                    <h3 class="stat-value">{{ global_stats.markets | int }}</h3>
                 </div>
             </div>
         </div>
 
         <!-- 24h Market Cap Change -->
         <div class="col-6 col-md-3">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card stat-card h-100">
                 <div class="card-body text-center">
-                    <i class="fa-solid fa-chart-line fa-2x text-info mb-2"></i>
-                    <h6 class="mb-1 wt">24h Market Cap Change</h6>
-                    <h3 class="fw-bold mb-0
+                    <span class="stat-icon"><i class="fa-solid fa-chart-line text-info"></i></span>
+                    <div class="stat-label">24h Market Cap Change</div>
+                    <h3 class="stat-value
                         {% if global_stats.market_cap_change_percentage_24h_usd > 0 %}text-success
                         {% elif global_stats.market_cap_change_percentage_24h_usd < 0 %}text-danger
                         {% endif %}">
@@ -63,11 +54,11 @@
 
         <!-- 24h Volume Change -->
         <div class="col-6 col-md-3">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card stat-card h-100">
                 <div class="card-body text-center">
-                    <i class="fa-solid fa-chart-bar fa-2x text-warning mb-2"></i>
-                    <h6 class="mb-1 wt">24h Volume Change</h6>
-                    <h3 class="fw-bold mb-0
+                    <span class="stat-icon"><i class="fa-solid fa-chart-column text-warning"></i></span>
+                    <div class="stat-label">24h Volume Change</div>
+                    <h3 class="stat-value
                         {% if global_stats.volume_change_percentage_24h_usd > 0 %}text-success
                         {% elif global_stats.volume_change_percentage_24h_usd < 0 %}text-danger
                         {% endif %}">
@@ -75,6 +66,15 @@
                     </h3>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <input type="text" id="searchInput" class="form-control" placeholder="Filter coins by name or symbol...">
+        </div>
+        <div class="col-md-6 text-md-end mt-2 mt-md-0 d-flex align-items-center justify-content-md-end">
+            <small class="text-muted">Showing top coins &bull; Auto-refreshes every 60s</small>
         </div>
     </div>
 
@@ -145,7 +145,7 @@
                                 ${{ "%.0f"|format(low) }}
                             </span>
                             {% else %}
-                                <span class="grey">-</span>>
+                                <span class="text-muted">--</span>
                             {% endif %}
                         </td>
                         <td class="text-end">

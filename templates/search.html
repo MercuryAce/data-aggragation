@@ -10,6 +10,18 @@
         <span class="text-muted">for “{{ query }}”</span>
     </div>
 
+    {% if error %}
+        <div class="alert alert-warning" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    {% if query and results and not results.coins and not results.exchanges and not results.categories and not results.nfts %}
+        <div class="alert alert-secondary" role="alert">
+            No results found for "{{ query }}".
+        </div>
+    {% endif %}
+
     <!-- Coins -->
     {% if results.coins %}
         <div class="card shadow-sm mb-4">
@@ -56,11 +68,11 @@
         </div>
     {% endif %}
 
-    <!-- Coins -->
+    <!-- NFTs -->
     {% if results.nfts %}
         <div class="card shadow-sm mb-4">
             <div class="card-header">
-                <h5 class="mb-0 wt">Coins ({{ results.coins | length }})</h5>
+                <h5 class="mb-0 wt">NFTs ({{ results.nfts | length }})</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -68,22 +80,22 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>#</th>
-                                <th>Coin</th>
+                                <th>NFT</th>
                                 <th>Symbol</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for coin in results.coins %}
-                                <tr onclick="window.location='/coin/{{ coin.id }}'" style="cursor: pointer;">
+                            {% for nft in results.nfts %}
+                                <tr onclick="window.location='/coin/{{ nft.id }}'" style="cursor: pointer;">
                                     <td class="align-middle fw-bold">{{ loop.index }}</td>
                                     <td class="align-middle">
                                         <div class="d-flex align-items-center">
-                                            <img src="{{ coin.thumb }}" alt="{{ coin.name }}" width="28" height="28" class="me-3 rounded-circle">
-                                            <span class="fw-bold">{{ coin.name }}</span>
+                                            <img src="{{ nft.thumb }}" alt="{{ nft.name }}" width="28" height="28" class="me-3 rounded-circle">
+                                            <span class="fw-bold">{{ nft.name }}</span>
                                         </div>
                                     </td>
                                     <td class="align-middle">
-                                        <span class="text-muted">{{ coin.symbol }}</span>
+                                        <span class="text-muted">{{ nft.symbol }}</span>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -161,7 +173,7 @@
             <div class="card-body p-0">
                 <ul>
                     {% for ico in results.icos %}
-                        <li class="wt">{{ icos.name }}</li>
+                        <li class="wt">{{ ico.name }}</li>
                     {% endfor %}
                 </ul>
             </div>

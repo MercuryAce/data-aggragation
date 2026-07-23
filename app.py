@@ -1,33 +1,48 @@
 import os
 
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_caching import Cache
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from blueprints.coingecko import init_cg_blueprint
 
 import markdown
+
+from handlers.errors import register_error_handlers
+
 # from models import db
 app = Flask(__name__)
-cache = Cache(app, config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 60})
-app.secret_key = os.environ.get('SECRET_KEY')
-limiter =Limiter(
+@app.route('/robots.txt')
+def robots():
+    return send_from_directory(app.static_folder, 'robots.txt')
+
+secret_key = os.environ.get("SECRET_KEY")
+
+if not secret_key and os.environ.get("FLASK_ENV") == "production":
+    raise RuntimeError("SECRET_KEY environment variable is required in production.")
+
+app.config["SECRET_KEY"] = secret_key or os.environ.get("DEV_SECRET_KEY")
+
+cache = Cache(app, config={
+    "CACHE_TYPE": os.environ.get("CACHE_TYPE", "simple"),
+    "CACHE_DEFAULT_TIMEOUT": int(os.environ.get("CACHE_DEFAULT_TIMEOUT", 60)),
+})
+
+limiter = Limiter(
     app=app,
     key_func=get_remote_address,
-    default_limits=["334 per day", "52 per hour"],
-    storage_uri="memory://",
+    default_limits=[
+        os.environ.get("RATELIMIT_DAILY", "334 per day"),
+        os.environ.get("RATELIMIT_HOURLY", "52 per hour"),
+    ],
+    storage_uri=os.environ.get("RATELIMIT_STORAGE_URI", "memory://"),
 )
 
 # === Database Configuration ===
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///crypto.db'
 # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 # Create db instance
 # db.init_app(app)
-
-cg_bp = init_cg_blueprint(cache, limiter)
-app.register_blueprint(cg_bp)
-
 # with app.app_context():
 #     db.create_all()
 
@@ -43,5 +58,12 @@ def init_markdown(app):
 
 init_markdown(app)
 
+cg_bp = init_cg_blueprint(cache, limiter)
+app.register_blueprint(cg_bp)
+
+register_error_handlers(app)
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(
+        debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    )

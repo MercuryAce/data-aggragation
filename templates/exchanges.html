@@ -18,6 +18,12 @@
 
     <!-- Exchanges List -->
     <div id="exchangeList">
+        {% if error %}
+            <div class="alert alert-warning" role="alert">
+                {{ error }}
+            </div>
+        {% endif %}
+
         {% for exchange in exchanges %}
             <div class="card dark mb-4 exchange-card"
                  id="{{ exchange.id }}">

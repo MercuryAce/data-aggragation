@@ -1,16 +1,45 @@
-import requests
 import os
+import requests
 from dotenv import load_dotenv
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 load_dotenv()
 
 API_KEY = os.getenv("CG_API_KEY")
+API_KEY_HEADER = os.getenv("CG_API_KEY_HEADER", "x-cg-demo-api-key")
 BASE_URL = os.getenv("CG_BASE_URL", "https://api.coingecko.com/api/v3")
+REQUEST_TIMEOUT = int(os.getenv("CG_REQUEST_TIMEOUT", "15"))
 
-headers = {}
+headers = {
+    "accept": "application/json",
+}
+
 if API_KEY:
-    headers["x-cg-demo-api-key"] = API_KEY
+    headers[API_KEY_HEADER] = API_KEY
 
+def _build_session():
+    session = requests.Session()
+
+    retries = Retry(
+        total=3,
+        connect=3,
+        read=3,
+        status=3,
+        backoff_factor=0.5,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=("GET",),
+        raise_on_status=False,
+    )
+
+    adapter = HTTPAdapter(max_retries=retries)
+
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+
+    return session
+
+session = _build_session()
 
 # ---------------------- Public API Functions ---------------------- #
 
@@ -21,9 +50,6 @@ def ping():
 def get_coins_list(include_platform=False):
     params = {
         "include_platform": str(include_platform).lower(),
-        "limit": 250,
-        "sparkline": True,
-        "price_change_percentage": "1h, 24h, 7d, 14d, 30d, 200d, 1y",
     }
     return _call(f"{BASE_URL}/coins/list", params)
 
@@ -35,7 +61,7 @@ def get_market_data(vs_currency="usd", limit=250, page=1, **params):
         "per_page": limit,
         "page": page,
         "sparkline": True,
-        "price_change_percentage": "24h",
+        "price_change_percentage": "1h,24h,7d,14d,30d,200d,1y",
         **params,
     }
     return _call(f"{BASE_URL}/coins/markets", query)
@@ -43,7 +69,7 @@ def get_market_data(vs_currency="usd", limit=250, page=1, **params):
 
 def get_coin_details(coin_id, vs_currency="usd", **params):
     query = {
-        "localization": False,
+        "localization": True,
         "tickers": False,
         "community_data": False,
         "developer_data": False,
@@ -137,6 +163,6 @@ def get_global_market_cap_chart(days=30, vs_currency="usd"):
 # ---------------------- Private Helper ---------------------- #
 
 def _call(url: str, params: dict = None):
-    response = requests.get(url, params=params or {}, headers=headers, timeout=15)
+    response = session.get(url, params=params or {}, headers=headers, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     return response.json()

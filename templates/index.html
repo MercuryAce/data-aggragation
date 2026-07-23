@@ -17,6 +17,12 @@
     </div>
 
     <div class="row g-3 mb-3">
+            {% if error %}
+                <div class="alert alert-warning" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+
         <!-- Active Cryptocurrencies -->
         <div class="col-6 col-md-3">
             <div class="card h-100 shadow-sm border-0">
@@ -129,7 +135,7 @@
                                 ${{ "%.0f"|format(high) }}
                             </span>
                             {% else %}
-                                <span class="grey">-</span>>
+                                <span class="grey">- -</span>
                             {% endif %}
                         </td>
                         <td class="text-end">

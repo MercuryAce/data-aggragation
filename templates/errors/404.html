@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Not Found{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-sm border-secondary">
+        <div class="card-body text-center py-5">
+            <i class="fa-solid fa-magnifying-glass fa-3x text-secondary mb-3"></i>
+
+            <h1 class="display-5 fw-bold wt">404</h1>
+            <h3 class="mb-3 wt">Not Found</h3>
+
+            <p class="text-muted mb-4">
+                We could not find the page, coin, exchange, or resource you requested.
+            </p>
+
+            <div class="d-flex justify-content-center gap-2">
+                <a href="/" class="btn btn-primary">Back to Market</a>
+                <a href="/search" class="btn btn-outline-secondary">Search</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

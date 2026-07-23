@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ code }} Error{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-sm border-danger">
+        <div class="card-body text-center py-5">
+            <i class="fa-solid fa-triangle-exclamation fa-3x text-danger mb-3"></i>
+
+            <h1 class="display-5 fw-bold wt">{{ code }}</h1>
+            <h3 class="mb-3 wt">{{ title }}</h3>
+
+            <p class="text-muted mb-4">
+                {{ message }}
+            </p>
+
+            <div class="d-flex justify-content-center gap-2">
+                <a href="/" class="btn btn-primary">Back to Market</a>
+                <button class="btn btn-outline-secondary" onclick="window.location.reload()">
+                    Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

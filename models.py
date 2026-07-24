@@ -3,6 +3,18 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+class ApiCache(db.Model):
+    __tablename__ = 'api_cache'
+
+    key = db.Column(db.String(255), primary_key=True)
+    payload = db.Column(db.JSON, nullable=False)
+    fetched_at = db.Column(db.DateTime, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=True)
+    source = db.Column(db.String(255), nullable=False, default='coingecko')
+
+    def __repr__(self):
+        return f'<ApiCache {self.key} @ {self.fetched_at}>'
+
 # Association table (many-to-many)
 creator_asset = db.Table(
     'creator_asset',

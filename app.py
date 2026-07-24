@@ -5,10 +5,11 @@ from flask_caching import Cache
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from blueprints.coingecko import init_cg_blueprint
-
+from models import db
 import markdown
 
 from handlers.errors import register_error_handlers
+from utils.formatters import compact_number, compact_usd
 
 # from models import db
 app = Flask(__name__)
@@ -39,12 +40,17 @@ limiter = Limiter(
 )
 
 # === Database Configuration ===
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///crypto.db'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+os.makedirs(app.instance_path, exist_ok=True)
+default_db_path = os.path.join(app.instance_path, "cache.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URI",
+    f"sqlite:///{default_db_path}",
+)
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # Create db instance
-# db.init_app(app)
-# with app.app_context():
-#     db.create_all()
+db.init_app(app)
+with app.app_context():
+    db.create_all()
 
 def init_markdown(app):
     @app.template_filter('markdown')
@@ -57,6 +63,17 @@ def init_markdown(app):
         )
 
 init_markdown(app)
+
+
+@app.template_filter("compact_number")
+def compact_number_filter(value, decimals=1):
+    return compact_number(value, decimals)
+
+
+@app.template_filter("compact_usd")
+def compact_usd_filter(value, decimals=1):
+    return compact_usd(value, decimals)
+
 
 cg_bp = init_cg_blueprint(cache, limiter)
 app.register_blueprint(cg_bp)

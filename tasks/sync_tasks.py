@@ -8,8 +8,9 @@ from scripts.sync_coingecko import (
     sync_exchanges,
     sync_top_coin_details,
     sync_ohlc,
-    sync__popular_searches,
+    sync_popular_searches,
 )
+
 
 def _run_sync(func, *args, **kwargs):
     try:
@@ -20,26 +21,51 @@ def _run_sync(func, *args, **kwargs):
         logger.error(f"Error syncing {func.__name__}: {e}")
         raise e
 
+
 @celery.task(name="tasks.sync_tasks.sync_markets")
 def sync_markets_task():
     _run_sync(sync_markets)
+
 
 @celery.task(name="tasks.sync_tasks.sync_trending")
 def sync_trending_task():
     _run_sync(sync_trending)
 
+
 @celery.task(name="tasks.sync_tasks.sync_categories")
 def sync_categories_task():
     _run_sync(sync_categories)
+
+
+@celery.task(name="tasks.sync_tasks.sync_trending_categories")
+def sync_trending_categories_task():
+    _run_sync(sync_trending)
+    _run_sync(sync_categories)
+
 
 @celery.task(name="tasks.sync_tasks.sync_exchanges")
 def sync_exchanges_task():
     _run_sync(sync_exchanges)
 
+
 @celery.task(name="tasks.sync_tasks.sync_top_coin_details")
-def sync_top_coin_details_task():
-    _run_sync(sync_top_coin_details)
+def sync_top_coin_details_task(**kwargs):
+    _run_sync(sync_top_coin_details, **kwargs)
+
+
+@celery.task(name="tasks.sync_tasks.sync_top_coins")
+def sync_top_coins_task(**kwargs):
+    # Beat schedule uses this name; default limit in script is 30.
+    # kwargs passes limit=250 for market coverage — map to top coin details.
+    limit = kwargs.get("limit", 30)
+    _run_sync(sync_top_coin_details, limit=limit)
+
 
 @celery.task(name="tasks.sync_tasks.sync_ohlc")
-def sync_ohlc_task():
-    _run_sync(sync_ohlc)
+def sync_ohlc_task(**kwargs):
+    _run_sync(sync_ohlc, **kwargs)
+
+
+@celery.task(name="tasks.sync_tasks.sync_search")
+def sync_search_task():
+    _run_sync(sync_popular_searches)

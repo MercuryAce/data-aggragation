@@ -1,5 +1,6 @@
 import os
 
+from dotenv import load_dotenv
 from flask import Flask, send_from_directory
 from flask_caching import Cache
 from flask_limiter import Limiter
@@ -10,6 +11,8 @@ import markdown
 
 from handlers.errors import register_error_handlers
 from utils.formatters import compact_number, compact_usd
+
+load_dotenv()
 
 # from models import db
 app = Flask(__name__)

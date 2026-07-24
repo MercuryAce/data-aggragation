@@ -179,7 +179,57 @@ small, .small { font-size: 0.82rem; }
     color: var(--text-muted);
     font-weight: 600;
     border-bottom: 1px solid var(--border);
+}
+.table thead th.text-nowrap,
+.table td.text-nowrap {
     white-space: nowrap;
+}
+.table-market {
+    width: 100%;
+    table-layout: fixed;
+}
+.table-market th,
+.table-market td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.table-market .col-rank { width: 3rem; }
+.table-market .col-coin { width: 16%; }
+.table-market .col-action { width: 5.5rem; }
+.table-scroll-wrap {
+    position: relative;
+}
+.table-scroll-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-soft);
+}
+.table-scroll-hint i {
+    color: var(--accent);
+}
+@media (max-width: 767.98px) {
+    .table-scroll-wrap .table-responsive {
+        position: relative;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-scroll-wrap .table-scroll-fade {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 2.5rem;
+        pointer-events: none;
+        background: linear-gradient(to right, rgba(22, 27, 34, 0), var(--surface) 85%);
+        transition: opacity 0.2s ease;
+    }
+    .table-scroll-wrap.is-scrolled-end .table-scroll-fade {
+        opacity: 0;
+    }
 }
 .table-hover > tbody > tr {
     transition: background-color 0.12s ease;

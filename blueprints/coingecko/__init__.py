@@ -1,6 +1,5 @@
 import time
 
-import requests
 from flask import (
     Blueprint,
     render_template,
@@ -8,25 +7,27 @@ from flask import (
     request,
     session,
     abort,
-    current_app
+    current_app,
 )
 from flask_caching import Cache
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.exceptions import HTTPException
 
-from clients.cg_client import (
+from services.coingecko_service import (
+    CacheMissError,
     get_market_data,
     get_coin_details,
     get_ohlc,
     get_global,
     get_trending,
     get_categories,
-    get_search, get_exchanges, get_exchange_details,
+    get_search,
+    get_exchanges,
+    get_exchange_details,
 )
 
 
 def rate_limit(limiter, limit_str):
-    """Helper decorator for conditional rate limiting"""
-
     def decorator(f):
         if not limiter:
             return f
@@ -45,244 +46,161 @@ def allow_request(key, cooldown=5):
 
 
 def guard_request(key: str, cooldown: int):
-    """Abort if same key pressed too quickly."""
     if not allow_request(key, cooldown=cooldown):
         abort(429)
 
 
-def guarded_render(template_name: str, fetch_context,):
-    """
-    Safely render a template that depends on an external API call.
-
-    For page routes, failures are routed to global error pages.
-    """
+def guarded_render(template_name: str, fetch_context):
     try:
         context = fetch_context()
-
         if context is None:
             abort(404)
-
-        return render_template(
-            template_name,
-            **context,
-            error=None,
-        )
+        return render_template(template_name, **context, error=None)
 
     except HTTPException:
         raise
 
-    except requests.exceptions.HTTPError as e:
-        current_app.logger.exception(str(e))
-
-        status_code = None
-        if e.response is not None:
-            status_code = e.response.status_code
-
-        if status_code == 404:
-            abort(404)
-
-        if status_code == 429:
-            abort(429)
-
-        if status_code == 503:
-            abort(503)
-
-        if status_code == 504:
-            abort(504)
-
-        abort(502)
-
-    except requests.exceptions.Timeout as e:
-        current_app.logger.exception(str(e))
-        abort(504)
-
-    except requests.exceptions.ConnectionError as e:
-        current_app.logger.exception(str(e))
+    except CacheMissError as e:
+        current_app.logger.warning("Cache miss: %s", e)
         abort(503)
 
-    except requests.exceptions.RequestException as e:
-        current_app.logger.exception(str(e))
-        abort(502)
+    except SQLAlchemyError:
+        current_app.logger.exception("Cache database error")
+        abort(503)
 
-    except Exception as e:
-        current_app.logger.exception(str(e))
+    except Exception:
+        current_app.logger.exception("Unexpected error rendering %s", template_name)
         abort(500)
 
 
-def guarded_json(
-        fetch_data,
-        service_error_message="Unable to reach the service at the moment. Please try again.",
-        generic_error_message="Something went wrong while processing your request.",
-):
-    """
-    Safely return JSON from an external API-backed route.
-    """
+def guarded_json(fetch_data, *, not_found_message="Resource not found."):
     try:
-        data = fetch_data()
-        return jsonify(data)
+        return jsonify(fetch_data())
 
     except HTTPException:
         raise
 
-    except requests.exceptions.HTTPError as e:
-        current_app.logger.exception(str(e))
+    except CacheMissError as e:
+        current_app.logger.warning("Cache miss: %s", e)
+        return jsonify({"error": "Data not available yet. Please try again shortly."}), 503
 
-        status_code = None
-        if e.response is not None:
-            status_code = e.response.status_code
+    except SQLAlchemyError:
+        current_app.logger.exception("Cache database error")
+        return jsonify({"error": "Data store temporarily unavailable."}), 503
 
-        if status_code == 404:
-            return jsonify({"error": "Resource not found."}), 404
+    except Exception:
+        current_app.logger.exception("Unexpected JSON route error")
+        return jsonify({"error": "Something went wrong while processing your request."}), 500
 
-        if status_code == 429:
-            return jsonify({"error": "Too many requests. Please try again shortly."}), 429
 
-        if status_code == 503:
-            return jsonify({"error": "Service temporarily unavailable."}), 503
-
-        if status_code == 504:
-            return jsonify({"error": "Request timed out."}), 504
-
-        return jsonify({"error": service_error_message}), 502
-
-    except requests.exceptions.Timeout as e:
-        current_app.logger.exception(str(e))
-        return jsonify({"error": "Request timed out."}), 504
-
-    except requests.exceptions.ConnectionError as e:
-        current_app.logger.exception(str(e))
-        return jsonify({"error": "Service temporarily unavailable."}), 503
-
-    except requests.exceptions.RequestException as e:
-        current_app.logger.exception(str(e))
-        return jsonify({"error": service_error_message}), 502
-
-    except Exception as e:
-        current_app.logger.exception(str(e))
-        return jsonify({"error": generic_error_message}), 500
-
-cg_bp = Blueprint('cg', __name__, url_prefix='')
+cg_bp = Blueprint("cg", __name__, url_prefix="")
 
 
 def init_cg_blueprint(cache: Cache, limiter=None):
-    @cg_bp.route('/')
+    @cg_bp.route("/")
     @cache.cached(timeout=300)
     @rate_limit(limiter, "5 per minute")
     def index():
-        guard_request('index_last_hit', 5)
+        guard_request("index_last_hit", cooldown=5)
 
-        return guarded_render(
-            'index.html',
-            fetch_context=lambda: {
-                'coins': get_market_data(limit=250),
-                'global_stats': get_global()["data"]
-            },
-        )
+        def fetch_context():
+            coins, coins_at = get_market_data(limit=250)
+            global_payload, global_at = get_global()
+            return {
+                "coins": coins,
+                "global_stats": global_payload["data"],
+                "last_updated": max(coins_at, global_at),
+            }
 
-    @cg_bp.route('/coin/<coin_id>')
+        return guarded_render("index.html", fetch_context)
+
+    @cg_bp.route("/coin/<coin_id>")
     @cache.cached(timeout=120)
     @rate_limit(limiter, "5 per minute")
     def coin(coin_id):
-        guard_request(f'coin_last_hit_{coin_id}', cooldown=3)
+        guard_request(f"coin_last_hit_{coin_id}", cooldown=3)
 
-        return guarded_render(
-            'coin.html',
-            fetch_context=lambda: {
-                'coin': get_coin_details(coin_id),
-            },
-        )
+        def fetch_context():
+            coin_data, fetched_at = get_coin_details(coin_id)
+            return {"coin": coin_data, "last_updated": fetched_at}
 
-    @cg_bp.route('/api/price-history/<coin_id>')
+        return guarded_render("coin.html", fetch_context)
+
+    @cg_bp.route("/api/price-history/<coin_id>")
     @cache.cached(timeout=300, query_string=True)
     @rate_limit(limiter, "5 per minute")
     def price_history(coin_id):
         allowed_days = {7, 30, 90, 365}
-        days = request.args.get('days', default=30, type=int)
+        days = request.args.get("days", default=30, type=int)
         if days not in allowed_days:
             return jsonify({"error": "Invalid days parameter."}), 400
 
-        return guarded_json(
-            fetch_data=lambda: get_ohlc(coin_id, days=days),
-            service_error_message="Unable to load price history at the moment. Please try again.",
-        )
+        guard_request(f"price_history_last_hit_{coin_id}_{days}", cooldown=3)
 
-    @cg_bp.route('/trending')
+        return guarded_json(lambda: get_ohlc(coin_id, days=days)[0])
+
+    @cg_bp.route("/trending")
     @cache.cached(timeout=120)
     @rate_limit(limiter, "5 per minute")
     def trending():
-        guard_request('trending_last_hit', cooldown=5)
+        guard_request("trending_last_hit", cooldown=5)
 
-        return guarded_render(
-            'trending.html',
-            fetch_context=lambda: {
-                'trending': get_trending(),
-            },
-        )
+        def fetch_context():
+            trending_data, fetched_at = get_trending()
+            return {"trending": trending_data, "last_updated": fetched_at}
 
-    @cg_bp.route('/categories')
+        return guarded_render("trending.html", fetch_context)
+
+    @cg_bp.route("/categories")
     @cache.cached(timeout=120)
     @rate_limit(limiter, "5 per minute")
     def categories():
-        guard_request('categories_last_hit', cooldown=5)
+        guard_request("categories_last_hit", cooldown=5)
 
-        return guarded_render(
-            'categories.html',
-            fetch_context=lambda: {
-                'categories': get_categories(),
-            },
-        )
+        def fetch_context():
+            categories_data, fetched_at = get_categories()
+            return {"categories": categories_data, "last_updated": fetched_at}
 
-    @cg_bp.route('/search')
+        return guarded_render("categories.html", fetch_context)
+
+    @cg_bp.route("/search")
     @cache.cached(timeout=60, query_string=True)
     @rate_limit(limiter, "5 per minute")
     def search():
-        query = request.args.get('q', '', type=str).strip()
-
+        query = request.args.get("q", "", type=str).strip()
         if not query:
             abort(400)
 
-        guard_request(f'search_last_hit_{query.lower()}', cooldown=3)
+        guard_request(f"search_last_hit_{query.lower()}", cooldown=3)
 
-        return guarded_render(
-            'search.html',
-            fetch_context=lambda: {
-                'query': query,
-                'results': get_search(query),
-            },
-        )
+        def fetch_context():
+            results, fetched_at = get_search(query)
+            return {"query": query, "results": results, "last_updated": fetched_at}
 
-    @cg_bp.route('/exchanges')
+        return guarded_render("search.html", fetch_context)
+
+    @cg_bp.route("/exchanges")
     @cache.cached(timeout=120)
     @rate_limit(limiter, "5 per minute")
     def exchanges():
-        guard_request('exchanges_last_hit', cooldown=5)
+        guard_request("exchanges_last_hit", cooldown=5)
 
-        return guarded_render(
-            'exchanges.html',
-            fetch_context=lambda: {
-                'exchanges': get_exchanges(),
-            },
-        )
+        def fetch_context():
+            exchanges_data, fetched_at = get_exchanges()
+            return {"exchanges": exchanges_data, "last_updated": fetched_at}
 
-    @cg_bp.route('/exchange/<exchange_id>')
+        return guarded_render("exchanges.html", fetch_context)
+
+    @cg_bp.route("/exchange/<exchange_id>")
     @cache.cached(timeout=120)
     @rate_limit(limiter, "5 per minute")
     def exchange_detail(exchange_id):
-        guard_request(f'exchange_last_hit_{exchange_id}', cooldown=3)
+        guard_request(f"exchange_last_hit_{exchange_id}", cooldown=3)
 
-        def fetch_exchange_context():
-            exchange = get_exchange_details(exchange_id)
+        def fetch_context():
+            exchange, fetched_at = get_exchange_details(exchange_id)
+            return {"exchange": exchange, "last_updated": fetched_at}
 
-            if not exchange:
-                abort(404)
-
-            return {
-                'exchange': exchange,
-            }
-
-        return guarded_render(
-            'exchange.html',
-            fetch_context=fetch_exchange_context,
-        )
+        return guarded_render("exchange.html", fetch_context)
 
     return cg_bp

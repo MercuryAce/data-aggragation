@@ -14,7 +14,6 @@
     {% endif %}
 
     <div class="row g-3 mb-4">
-        <!-- Active Cryptocurrencies -->
         <div class="col-6 col-md-3">
             <div class="card stat-card h-100">
                 <div class="card-body text-center">
@@ -25,7 +24,6 @@
             </div>
         </div>
 
-        <!-- Markets -->
         <div class="col-6 col-md-3">
             <div class="card stat-card h-100">
                 <div class="card-body text-center">
@@ -36,7 +34,6 @@
             </div>
         </div>
 
-        <!-- 24h Market Cap Change -->
         <div class="col-6 col-md-3">
             <div class="card stat-card h-100">
                 <div class="card-body text-center">
@@ -52,7 +49,6 @@
             </div>
         </div>
 
-        <!-- 24h Volume Change -->
         <div class="col-6 col-md-3">
             <div class="card stat-card h-100">
                 <div class="card-body text-center">
@@ -78,86 +74,96 @@
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0" id="cryptoTable">
+    <div class="card shadow-sm table-scroll-wrap" id="marketTableWrap">
+        <div class="table-scroll-hint d-md-none" role="note" aria-live="polite">
+            <i class="fa-solid fa-arrows-left-right" aria-hidden="true"></i>
+            <span>Swipe horizontally to see all columns</span>
+        </div>
+        <div class="table-responsive" id="marketTableScroll">
+            <table class="table table-dark table-hover align-middle mb-0 table-market" id="cryptoTable">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th data-sort="text">Coin</th>
-                        <th class="text-end">Price (USD)</th>
-                        <th class="text-end">24h %</th>
-                        <th class="text-center">Market Cap</th>
-                        <th class="text-center">24h Volume</th>
-                        <th class="text-end">24h High</th>
-                        <th class="text-end">24h Low</th>
-                        <th class="text-center">Fully Diluted</th>
-                        <th class="text-start" >Supply</th>
-                        <th class="text-center" style="width: 90px;">Action</th>
+                        <th class="col-rank text-nowrap">#</th>
+                        <th class="col-coin">Coin</th>
+                        <th class="text-end text-nowrap">Price</th>
+                        <th class="text-end text-nowrap">24h %</th>
+                        <th class="text-end text-nowrap">Mkt Cap</th>
+                        <th class="text-end text-nowrap">Volume</th>
+                        <th class="text-end text-nowrap d-none d-lg-table-cell">24h High</th>
+                        <th class="text-end text-nowrap d-none d-lg-table-cell">24h Low</th>
+                        <th class="text-end text-nowrap d-none d-xl-table-cell">FDV</th>
+                        <th class="text-end text-nowrap d-none d-xl-table-cell">Supply</th>
+                        <th class="text-center col-action text-nowrap">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for coin in coins %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td class="text-muted">{{ loop.index }}</td>
                         <td>
                             <div class="d-flex align-items-center">
                                 <img src="{{ coin['image'] }}"
                                      width="26" height="26"
-                                     class="me-2 rounded-circle"
+                                     class="me-2 rounded-circle flex-shrink-0"
                                      alt="{{ coin['symbol'] }} logo"
                                      onerror="this.src='https://via.placeholder.com/26'">
-                                <div>
-                                    <strong>{{ coin['name'] }}</strong><br>
-                                    <small class="wt">{{ coin['symbol'].upper() }}</small>
+                                <div class="min-w-0">
+                                    <strong class="d-block text-truncate">{{ coin['name'] }}</strong>
+                                    <small class="text-muted">{{ coin['symbol'].upper() }}</small>
                                 </div>
                             </div>
                         </td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap">
                             <strong>${{ "{:,.2f}".format(coin['current_price']) }}</strong>
                         </td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap">
                             {% set change = coin.get('price_change_percentage_24h', 0) or 0 %}
                             <span class="{{ 'text-green' if change >= 0 else 'text-red' }} fw-bold">
                                 {{ "%.2f"|format(change) }}%
                             </span>
                         </td>
-                        <td class="text-end">
-                            ${{ "{:,.0f}".format(coin.get('market_cap', 0) or 0) }}
+                        <td class="text-end text-nowrap"
+                            title="${{ '{:,.0f}'.format(coin.get('market_cap', 0) or 0) }}">
+                            {{ coin.get('market_cap', 0) | compact_usd }}
                         </td>
-                        <td class="text-end">
-                            ${{ "{:,.0f}".format(coin.get('total_volume', 0) or 0) }}
+                        <td class="text-end text-nowrap"
+                            title="${{ '{:,.0f}'.format(coin.get('total_volume', 0) or 0) }}">
+                            {{ coin.get('total_volume', 0) | compact_usd }}
                         </td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap d-none d-lg-table-cell">
                             {% set high = coin['high_24h'] %}
-                            {% if high is not none  %}
-                            <span class="{{ 'text-green' if  high >= coin['current_price'] else 'text-red' }}">
-                                ${{ "%.0f"|format(high) }}
+                            {% if high is not none %}
+                            <span class="{{ 'text-green' if high >= coin['current_price'] else 'text-red' }}"
+                                  title="${{ '{:,.2f}'.format(high) }}">
+                                {{ high | compact_usd }}
                             </span>
                             {% else %}
-                                <span class="grey">- -</span>
+                                <span class="text-muted">—</span>
                             {% endif %}
                         </td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap d-none d-lg-table-cell">
                             {% set low = coin['low_24h'] %}
-                            {% if low is not none  %}
-                            <span class="{{ 'text-green' if  low >= coin['current_price'] else 'text-red' }}">
-                                ${{ "%.0f"|format(low) }}
+                            {% if low is not none %}
+                            <span class="{{ 'text-green' if low >= coin['current_price'] else 'text-red' }}"
+                                  title="${{ '{:,.2f}'.format(low) }}">
+                                {{ low | compact_usd }}
                             </span>
                             {% else %}
-                                <span class="text-muted">--</span>
+                                <span class="text-muted">—</span>
                             {% endif %}
                         </td>
-                        <td class="text-end">
-                            ${{ "{:,.0f}".format(coin.get('fully_diluted_valuation', 0) or 0) }}
+                        <td class="text-end text-nowrap d-none d-xl-table-cell"
+                            title="${{ '{:,.0f}'.format(coin.get('fully_diluted_valuation', 0) or 0) }}">
+                            {{ coin.get('fully_diluted_valuation', 0) | compact_usd }}
                         </td>
-                        <td class="text-start">
-                            {{ "{:,.0f}".format(coin.get('total_supply', 0) or 0) }}
+                        <td class="text-end text-nowrap d-none d-xl-table-cell"
+                            title="{{ '{:,.0f}'.format(coin.get('total_supply', 0) or 0) }}">
+                            {{ coin.get('total_supply', 0) | compact_number }}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center text-nowrap">
                             <a href="{{ url_for('cg.coin', coin_id=coin['id']) }}"
-                               class="btn btn-sm btn-outline-light px-3">
-                                Details
+                               class="btn btn-sm btn-outline-light">
+                                View
                             </a>
                         </td>
                     </tr>
@@ -165,14 +171,16 @@
                 </tbody>
             </table>
         </div>
-        </div>
+        <div class="table-scroll-fade d-md-none" aria-hidden="true"></div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Client-side search
     const searchInput = document.getElementById('searchInput');
     const table = document.getElementById('cryptoTable');
+    const scrollWrap = document.getElementById('marketTableWrap');
+    const scrollArea = document.getElementById('marketTableScroll');
 
     searchInput.addEventListener('input', function () {
         const filter = this.value.toLowerCase();
@@ -184,5 +192,24 @@
             row.style.display = text.includes(filter) ? '' : 'none';
         }
     });
+
+    function updateScrollHint() {
+        if (!scrollWrap || !scrollArea) return;
+
+        const canScroll = scrollArea.scrollWidth > scrollArea.clientWidth + 1;
+        const atEnd = scrollArea.scrollLeft + scrollArea.clientWidth >= scrollArea.scrollWidth - 4;
+        const hint = scrollWrap.querySelector('.table-scroll-hint');
+
+        scrollWrap.classList.toggle('is-scrolled-end', !canScroll || atEnd);
+        if (hint) {
+            hint.style.display = canScroll ? '' : 'none';
+        }
+    }
+
+    if (scrollArea) {
+        scrollArea.addEventListener('scroll', updateScrollHint, { passive: true });
+        window.addEventListener('resize', updateScrollHint);
+        updateScrollHint();
+    }
 </script>
 {% endblock %}
